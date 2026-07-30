@@ -27,5 +27,5 @@ INSERT INTO books (title, author) VALUES
 ("Kubernetes", "Mustafa Shaik"),
 ("Terraform", "Musta");
 
-GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' IDENTIFIED BY 'root';
+ALTER USER 'uma'@'%' IDENTIFIED BY 'digital_library';
 FLUSH PRIVILEGES;
