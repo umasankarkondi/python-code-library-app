@@ -23,9 +23,11 @@ CREATE TABLE borrow_records (
 
 -- Sample books
 INSERT INTO books (title, author) VALUES
-("Docker Book", "Mustafa"),
-("Kubernetes", "Mustafa Shaik"),
-("Terraform", "Musta");
+('Docker', 'Sankar'),
+('Kubernetes', 'Srinu'),
+('Terraform', 'Sudhakar'),
+('Python', 'Uma'),
+('Java', 'Ravi');
 
 ALTER USER 'uma'@'%' IDENTIFIED BY 'digital_library';
 FLUSH PRIVILEGES;
