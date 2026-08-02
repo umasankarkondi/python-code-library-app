@@ -5,7 +5,7 @@ app = Flask(__name__)
 app.secret_key = "supersecretkey"
 
 AUTH_URL = "https://library-auth-htvd.onrender.com"
-BOOK_URL = "http://book_service:5002"
+BOOK_URL = "https://library-book-8eks.onrender.com"
 BORROW_URL = "http://borrow_service:5003"
 
 @app.route("/")
