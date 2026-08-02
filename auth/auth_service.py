@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify
 import mysql.connector
+from mysql.connector import IntegrityError
 import os
 
 app = Flask(__name__)
@@ -17,30 +18,100 @@ def get_db():
 @app.route("/signup", methods=["POST"])
 def signup():
     data = request.json
+
     conn = get_db()
     cursor = conn.cursor(dictionary=True)
-    cursor.execute("INSERT INTO users (name, email, password) VALUES (%s, %s, %s)", 
-                   (data["name"], data["email"], data["password"]))
-    conn.commit()
-    cursor.close()
-    conn.close()
-    return jsonify({"message": "User created"}), 201
+
+    try:
+        # Check if email already exists
+        cursor.execute(
+            "SELECT id FROM users WHERE email=%s",
+            (data["email"],)
+        )
+
+        user = cursor.fetchone()
+
+        if user:
+            return jsonify({
+                "message": "Email already exists"
+            }), 409
+
+        # Insert new user
+        cursor.execute(
+            "INSERT INTO users (name, email, password) VALUES (%s, %s, %s)",
+            (
+                data["name"],
+                data["email"],
+                data["password"]
+            )
+        )
+
+        conn.commit()
+
+        return jsonify({
+            "message": "User created successfully"
+        }), 201
+
+    except IntegrityError:
+        conn.rollback()
+        return jsonify({
+            "message": "Email already exists"
+        }), 409
+
+    except Exception as e:
+        conn.rollback()
+        return jsonify({
+            "message": str(e)
+        }), 500
+
+    finally:
+        cursor.close()
+        conn.close()
+
 
 @app.route("/signin", methods=["POST"])
 def signin():
     data = request.json
+
     conn = get_db()
     cursor = conn.cursor(dictionary=True)
-    cursor.execute("SELECT * FROM users WHERE email=%s AND password=%s", 
-                   (data["email"], data["password"]))
+
+    cursor.execute(
+        "SELECT * FROM users WHERE email=%s AND password=%s",
+        (data["email"], data["password"])
+    )
+
     user = cursor.fetchone()
+
     cursor.close()
     conn.close()
+
     if user:
-        return jsonify({"message": "Login success", "user_id": user["id"], "name": user["name"]})
-    else:
-        return jsonify({"message": "Invalid credentials"}), 401
+        return jsonify({
+            "message": "Login success",
+            "user_id": user["id"],
+            "name": user["name"]
+        })
+
+    return jsonify({
+        "message": "Invalid credentials"
+    }), 401
+
+
+@app.route("/", methods=["GET"])
+def home():
+    return jsonify({
+        "message": "Auth Service is running"
+    })
+
+
+@app.route("/health", methods=["GET"])
+def health():
+    return jsonify({
+        "status": "UP"
+    }), 200
+
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5001))
+    port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
